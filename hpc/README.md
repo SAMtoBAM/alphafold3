@@ -1,19 +1,32 @@
 # Credits
 This pipeline was developped by the **Computational Biology Research Group** at the **GLBRC** (http://glbrc.org/). This repository was forked from the original repository (🔗 [link](https://github.com/sameerd/alphafold3/tree/hpc/hpc))  to add clarifications to the instructions. 
 
-# Running Alphafold3 on CHTC
+# About AlphaFold3
+to do
+
+# Cyberinfrastructure Choice
+## Is Running AlphaFold3 on CHTC the right option for me?
+
+
+## Scenarios where running AlphaFold3 on CHTC is a good idea:
+- Uncommon ligands
+- Large number of novel sequences (e.g. 1000s of jobs)
+
+# Instructions for running AF3 on CHTC
+
+## Pipeline description
 
 This directory has two pipelines for running Alphafold3 on CHTC. It uses an
-apptainer container (5GB) in two pipelines.
+apptainer container (`.sif` file) (5GB) in two pipelines.
 
-1. The data pipeline searches the genetic databases for matches of interest. It
+1. `data_pipeline.sh`: The data pipeline searches the genetic databases for matches of interest. It
    copies and decompresses the databases (252GB --> 650GB) to an execute node
    and runs the searches in parallel there. No GPU is needed for this pipeline
-2. The inference pipeline takes the output of the data pipeline and creates a
+2. `inference_pipeline.sh`: The inference pipeline takes the output of the data pipeline and creates a
    structure using a GPU
 
 
-## **Important Notes**
+## **⚠️ Important Notes**
 
 * **Obtain the Alphafold3 model parameters first**: The inference pipeline needs
   [your own copy of the Model
@@ -38,30 +51,34 @@ apptainer container (5GB) in two pipelines.
   model parameters directly from Google Deepmind.
 
 
-## How to use these pipelines
+## Step-by-step instructions
+
 1. Obtain the model parameters, put it in your own staging directory and
-   protect it with your file permissions. `chmod 600 af3.bin.zst`. Do not use
-   squid as this data should be private and not be public.
-2. Download the following files to your chtc submit server home directory
+   protect it with your file permissions. `chmod 600 af3.bin.zst`.
+
+> [!WARNING]
+> Do not use SQUID since the data should be private, not public.
+
+3. Download the following files to your chtc submit server home directory
    * [data_pipeline.sh](./data_pipeline.sh)
    * [data_pipeline.sub](./data_pipeline.sub)
    * [inference_pipeline.sh](./inference_pipeline.sh)
    * [inference_pipeline.sub](./inference_pipeline.sub)
    * [Makefile](./Makefile) # optional to help run the scripts
-3. Create the input directories as a sub directory of the directory that you
+4. Create the input directories as a sub directory of the directory that you
    downloaded the above files into.
    ```shell
     mkdir -p job1/data_inputs job1/inference_inputs
    ```
-4. Edit the `MODEL_PARAM_FILE` variable in `inference_pipeline.sub` to point
+5. Edit the `MODEL_PARAM_FILE` variable in `inference_pipeline.sub` to point
    to the model parameters you got from Google Deepmind in Step 1.
 
-5. Put the config `json` files in the in the [job1/data_inputs/](./job1/data_inputs/)
+6. Put the config `json` files in the in the [job1/data_inputs/](./job1/data_inputs/)
    directory. An example config to test is available as
    [`fold_input.json`](./test/input/fold_input.json) in
    the [(README.md file for Alphafold3](../README.md)
 
-6. Run a test with the small databases first
+7. Run a test with the small databases first
    ```shell
    condor_submit USE_SMALL_DB=1 data_pipeline.sub
    ```
