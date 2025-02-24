@@ -1,3 +1,6 @@
+# Credits
+This pipeline was developped by the **Computational Biology Research Group** at the **GLBRC** (http://glbrc.org/). This repository was forked from the original repository (🔗 [link](https://github.com/sameerd/alphafold3/tree/hpc/hpc))  to add clarifications to the instructions. 
+
 # Running Alphafold3 on CHTC
 
 This directory has two pipelines for running Alphafold3 on CHTC. It uses an
@@ -181,7 +184,7 @@ ls job*/inference_inputs/
 ```
 
 5. Run the inference script for all the samples:
-# NOTE : TO TEST
+
 ```
 condor_submit inference_pipeline.sub
 ```
