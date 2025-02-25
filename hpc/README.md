@@ -1,5 +1,5 @@
 # Credits
-This pipeline was developped by the **Computational Biology Research Group** at the **GLBRC** (http://glbrc.org/). This repository was forked from the original repository (🔗 [link](https://github.com/sameerd/alphafold3/tree/hpc/hpc))  to add clarifications to the instructions. 
+This pipeline was developped by the **Computational Biology Research Group** at the **GLBRC** (https://www.glbrc.org/). This repository was forked from the original repository (🔗 [link](https://github.com/sameerd/alphafold3/tree/hpc/hpc))  to add clarifications to the instructions. 
 
 # About AlphaFold3
 to do
