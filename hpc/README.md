@@ -1,16 +1,20 @@
 # Credits
-This pipeline was developped by the **Computational Biology Research Group** at the **GLBRC** (https://www.glbrc.org/). This repository was forked from the original repository (🔗 [link](https://github.com/sameerd/alphafold3/tree/hpc/hpc))  to add clarifications to the instructions. 
+This pipeline was developped by the **Computational Biology Research Group** at the **GLBRC** (https://www.glbrc.org/). This repository was forked by Patricia Tran from the original repository (🔗 [link](https://github.com/sameerd/alphafold3/tree/hpc/hpc)) to add clarifications to the instructions, and helper scripts.
 
 # About AlphaFold3
 to do
 
 # Cyberinfrastructure Choice
+<details>
+   
 ## Is Running AlphaFold3 on CHTC the right option for me?
 
 
 ## Scenarios where running AlphaFold3 on CHTC is a good idea:
 - Uncommon ligands
 - Large number of novel sequences (e.g. 1000s of jobs)
+
+</details>
 
 # Instructions for running AF3 on CHTC
 
@@ -59,38 +63,57 @@ apptainer container (`.sif` file) (5GB) in two pipelines.
 > [!WARNING]
 > Do not use SQUID since the data should be private, not public.
 
-3. Download the following files to your chtc submit server home directory
+3. Log into the server's access point, and download the following files to your CHTC home directory. 
    * [data_pipeline.sh](./data_pipeline.sh)
    * [data_pipeline.sub](./data_pipeline.sub)
    * [inference_pipeline.sh](./inference_pipeline.sh)
    * [inference_pipeline.sub](./inference_pipeline.sub)
    * [Makefile](./Makefile) # optional to help run the scripts
-4. Create the input directories as a sub directory of the directory that you
-   downloaded the above files into.
-   ```shell
-    mkdir -p job1/data_inputs job1/inference_inputs
-   ```
-5. Edit the `MODEL_PARAM_FILE` variable in `inference_pipeline.sub` to point
-   to the model parameters you got from Google Deepmind in Step 1.
+  
+You can either go to these pages, and click on "raw" and copy the URL into a `wget` command on the terminal, or type the following:
 
-6. Put the config `json` files in the in the [job1/data_inputs/](./job1/data_inputs/)
-   directory. An example config to test is available as
-   [`fold_input.json`](./test/input/fold_input.json) in
-   the [(README.md file for Alphafold3](../README.md)
+```
+mkdir AF3
+cd AF3
+wget https://raw.githubusercontent.com/patriciatran/alphafold3/refs/heads/hpc/hpc/data_pipeline.sh
+wget https://raw.githubusercontent.com/patriciatran/alphafold3/refs/heads/hpc/hpc/data_pipeline.sub
+wget https://raw.githubusercontent.com/patriciatran/alphafold3/refs/heads/hpc/hpc/inference_pipeline.sh
+wget https://raw.githubusercontent.com/patriciatran/alphafold3/refs/heads/hpc/hpc/inference_pipeline.sub
+wget https://raw.githubusercontent.com/patriciatran/alphafold3/refs/heads/hpc/hpc/set_up_directory.py
+```
+
+
+4. Create two subdirectories named `data_inputs` and `inference_inputs` in the `job1` directory.
+
+```
+mkdir -p job1/data_inputs job1/inference_inputs
+```
+
+5. Open the file `inference_pipeline.sub` using `nano` and edit the `MODEL_PARAM_FILE` variable in to point to the model parameters you got from Google Deepmind in Step 1 (for example: `/staging/netid/modelparameters`
+
+6. Download the config `json` files in the in the [job1/data_inputs/](./job1/data_inputs/)
+   directory to your CHTC folder.
+
+```
+wget https://raw.githubusercontent.com/patriciatran/alphafold3/refs/heads/hpc/hpc/test/input/fold_input.json
+mv fold_input job1/data_inputs/.
+```
 
 7. Run a test with the small databases first
-   ```shell
-   condor_submit USE_SMALL_DB=1 data_pipeline.sub
-   ```
 
-   Check and then delete test output files. You will find a file named `2pv7.data_pipeline.tar.gz` located under `job1/2pv7.data_pipeline.tar.gz`
+```
+condor_submit USE_SMALL_DB=1 data_pipeline.sub
+```
 
-   Unzip the file and take a look at its contents:
-   ```
-   cd job1
-   tar xvf 2pv7.data_pipeline.tar.gz
-   cat job1/2pv7_data.json
-   ```
+8. When the pipeline finishes, you will find a file named `2pv7.data_pipeline.tar.gz` located under `job1/2pv7.data_pipeline.tar.gz.
+   
+Unzip the file and take a look at its contents
+
+```
+cd job1
+tar xvf 2pv7.data_pipeline.tar.gz
+cat job1/2pv7_data.json
+```
 
 You should see this:
 
@@ -121,28 +144,30 @@ You should see this:
   "userCCD": null
 }
 ```
+You can delete the tar.gz file after that, since this is just a test.
 
-7. If the file `job1/2pv7_data.json` looks ok, proceed to run the `data_pipeline.sub` on the whole dataset.
+9. Proceed to run the `data_pipeline.sub` on the whole dataset.
 
-   ```
-   condor_submit data_pipeline.sub
-   ```
+```
+condor_submit data_pipeline.sub
+```
+
+You can track the job using `condor_q`.
    
-8. This will create a `job1/2pv7.data_pipeline.tar.gz` file.
-
+10. When done, this will create a `job1/2pv7.data_pipeline.tar.gz` file, again.
 Note the time stamp, and likely larger file size. Move it to the `job1/inference_inputs` folder:
 
-   ```
-   mv job1/*.data_pipeline.tar.gz job1/inference_inputs/.
-   ```
+```
+mv job1/*.data_pipeline.tar.gz job1/inference_inputs/.
+```
 
-9. The run inference pipeline:
+11. The next step of the pipeline is to run the inference pipeline:
 
-   ```
-   condor_submit inference_pipeline.sub
-   ```
+```
+condor_submit inference_pipeline.sub
+```
 
-The output will be a file named `.inference_pipeline.tar.gz`. Once unzipped, it should contain the follow files:
+The output will be a file named `[...].inference_pipeline.tar.gz`. Once unzipped, it should contain the follow files:
 
 ```
 2pv7.inference_pipeline.tar.gz
@@ -172,12 +197,16 @@ The python scripts takes in 2 arguments: the fasta file, and a batch_size. The b
 1. Download a copy of `set_up_directory.py` and make it executable:
 
 ```
-wget [...]
+wget https://raw.githubusercontent.com/patriciatran/alphafold3/refs/heads/hpc/hpc/set_up_directory.py
 chmod +x set_up_directory.py
 ```
 
-2. Use the python script directly from the access point:
+2. Use the python script directly from the access point.
+The script takes 2 arguments: a multi-fasta file and an integer.
+<img width="1245" alt="Screenshot 2025-04-30 at 8 21 24 AM" src="https://github.com/user-attachments/assets/f2303255-2904-46fb-a046-3a6954f1d11c" />
+
 ```
+# you should be in /home/netid/AF3 at this point (just a reminder)
 python set_up_directory.py test.fasta 10
 ```
 
@@ -186,10 +215,9 @@ python set_up_directory.py test.fasta 10
 condor_submit data_pipeline.sub
 ```
 
-Since the queue statement stays queue directory from job*, it automatically knows to submit a job for each folder started with the naming pattern "job".
+Since the `queue` statement in the submit file mentions to queue directories from job*, it automatically knows to submit a job for each folder started with the naming pattern "job".
 
-4. Move the tar.gz file into the inference_input folders.
-A (or multiple) tar.gz file is created under `jobN`, but they all need to be moved to `jobN/inference_inputs/.`
+4. A (or multiple) tar.gz file is created under `jobN`, but they all need to be moved to `jobN/inference_inputs/.` Move the (or all) tar.gz file(s) into their respective `inference_input` folders.
 
 ```
 for dir in job*/; do mv "$dir"*.tar.gz "$dir"inference_inputs/; done
@@ -232,7 +260,7 @@ The cif file will be downloaded to your Downloads folder on your computer.
 Open PyMol. Click on File > Open > Choose the cif file.
 
 ## Notes on recreating steps used to create these instructions
-
+<details>
 These notes below are only needed in case someone wants to recreate building
 the apptainer container or the databases
 
@@ -290,3 +318,5 @@ popd
 
 
 ```
+
+</details>
