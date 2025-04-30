@@ -104,7 +104,7 @@ mkdir -p job1/data_inputs job1/inference_inputs
 
 ```
 wget https://raw.githubusercontent.com/patriciatran/alphafold3/refs/heads/hpc/hpc/test/input/fold_input.json
-mv fold_input job1/data_inputs/.
+mv fold_input.json job1/data_inputs/.
 ```
 
 7. Run a test with the small databases first
