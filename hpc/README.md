@@ -120,7 +120,7 @@ Unzip the file and take a look at its contents
 ```
 cd job1
 tar xvf 2pv7.data_pipeline.tar.gz
-cat job1/2pv7_data.json
+cat 2pv7_data.json
 ```
 
 You should see this:
@@ -153,16 +153,21 @@ You should see this:
 }
 ```
 You can delete the tar.gz file after that, since this is just a test.
+```
+rm 2pv7_data.json
+rm 2pv7.data_pipeline.tar.gz 
+```
 
 9. Proceed to run the `data_pipeline.sub` on the whole dataset.
 
 ```
+cd ..
 condor_submit data_pipeline.sub
 ```
 
 You can track the job using `condor_q`.
    
-10. When done, this will create a `job1/2pv7.data_pipeline.tar.gz` file, again.
+10. When done, this will create a `job1/2pv7.data_pipeline.tar.gz` file, again. (`ls -lht`)
 Note the time stamp, and likely larger file size. Move it to the `job1/inference_inputs` folder:
 
 ```
