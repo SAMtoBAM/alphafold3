@@ -63,7 +63,15 @@ apptainer container (`.sif` file) (5GB) in two pipelines.
 > [!WARNING]
 > Do not use SQUID since the data should be private, not public.
 
-3. Log into the server's access point, and download the following files to your CHTC home directory. 
+2. Log into the server's access point.
+
+```
+ssh netid@ap2002.chtc.wisc.edu
+# enter you password
+pwd
+```
+  
+3. Download the following files to your CHTC home directory. 
    * [data_pipeline.sh](./data_pipeline.sh)
    * [data_pipeline.sub](./data_pipeline.sub)
    * [inference_pipeline.sh](./inference_pipeline.sh)
