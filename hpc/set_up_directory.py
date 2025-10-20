@@ -41,76 +41,85 @@ import os
 import argparse
 
 def fasta_to_json(fasta_file, batch_size):
-    # read in the fasta sequence from the user
     sequences = list(SeqIO.parse(fasta_file, "fasta"))
-    # count how many sequences there are in the multi-fasta file
     count = len(sequences)
 
-    
+    def build_json(record):
+        """Build JSON structure for a single FASTA record (complex or single)"""
+        seq_str = str(record.seq)
+
+        # Detect complex case (sequence contains ':')
+        if ':' in seq_str:
+            sub_sequences = seq_str.split(':')
+            chain_ids = [chr(65 + i) for i in range(len(sub_sequences))]
+
+            seq_list = []
+            for cid, subseq in zip(chain_ids, sub_sequences):
+                seq_list.append({
+                    "protein": {
+                        "id": cid,
+                        "sequence": subseq
+                    }
+                })
+
+            print(f"[Complex] {record.id} → {len(sub_sequences)} chains detected")
+
+        else:
+            seq_list = [{
+                "protein": {
+                    "id": "A",
+                    "sequence": seq_str
+                }
+            }]
+            print(f"[Single]  {record.id}")
+
+        data = {
+            "name": record.id,
+            "modelSeeds": [1],
+            "sequences": seq_list,
+            "dialect": "alphafold3",
+            "version": 1
+        }
+        return data
+
+    # Create jobs and directories
     if count >= batch_size:
-        # Determine how many batchs of size batch_size there should be.
-        # In the example able (6 + 5 - 1) // 5 = 2 --> 2 batches --> expected folder: job1 , job2
         num_batches = (count + batch_size - 1) // batch_size
         for batch_index in range(num_batches):
-            # Make a jobN and data_inputs and inference_inputs for each folder
             job_dir = f"job{batch_index + 1}"
             data_inputs_dir = os.path.join(job_dir, "data_inputs")
             inference_inputs_dir = os.path.join(job_dir, "inference_inputs")
-            
             os.makedirs(data_inputs_dir, exist_ok=True)
             os.makedirs(inference_inputs_dir, exist_ok=True)
 
-            # Create a json file for that batch of sequences
             for i, record in enumerate(sequences[batch_index * batch_size : (batch_index + 1) * batch_size], start=1):
-                data = {
-                    "name": record.id,
-                    "sequences": [
-                        {
-                            "protein": {
-                                "id": ["A"],
-                                "sequence": str(record.seq)
-                            }
-                        }
-                    ],
-                    "modelSeeds": [1],
-                    "dialect": "alphafold3",
-                    "version": 1
-                }
-                
+                data = build_json(record)
                 json_filename = os.path.join(data_inputs_dir, f"fold_input_{(batch_index * batch_size) + i}.json")
                 with open(json_filename, "w") as json_file:
                     json.dump(data, json_file, indent=2)
+
     else:
-        # If there are fewer sequences than the batch size, then there should only be one folder created, i.e. job1.
         job_dir = "job1"
         data_inputs_dir = os.path.join(job_dir, "data_inputs")
         inference_inputs_dir = os.path.join(job_dir, "inference_inputs")
-        
         os.makedirs(data_inputs_dir, exist_ok=True)
         os.makedirs(inference_inputs_dir, exist_ok=True)
 
-        # create the json files 
         for i, record in enumerate(sequences, start=1):
-            data = {
-                "name": record.id,
-                "sequences": [
-                    {
-                        "protein": {
-                            "id": ["A"],
-                            "sequence": str(record.seq)
-                        }
-                    }
-                ],
-                "modelSeeds": [1],
-                "dialect": "alphafold3",
-                "version": 1
-            }
-            
+            data = build_json(record)
             json_filename = os.path.join(data_inputs_dir, f"fold_input_{i}.json")
             with open(json_filename, "w") as json_file:
                 json.dump(data, json_file, indent=2)
-    
-    print("JSON files saved under respective job folders in the current directory")
+
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Convert FASTA file to JSON format with structured job directories.")
+    parser.add_argument("fasta_file", type=str, help="Path to the input FASTA file")
+    parser.add_argument("batch_size", type=int, help="Number of JSON files per job folder")
+
+    args = parser.parse_args()
+    fasta_to_json(args.fasta_file, args.batch_size)
 
 # Help page to let the user know how to use this script.
 if __name__ == "__main__":
@@ -120,3 +129,4 @@ if __name__ == "__main__":
     
     args = parser.parse_args()
     fasta_to_json(args.fasta_file, args.batch_size)
+
