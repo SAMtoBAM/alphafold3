@@ -34,9 +34,9 @@ if defined USE_SMALL_DB
 #  arguments = --smalldb --work_dir_ext $(Cluster)_$(Process)
 else
   # full requirements
-  request_memory = 8GB
+  request_memory = 32GB
   request_disk = 700GB
-  request_cpus = 8
+  request_cpus = 16
   arguments = --work_dir_ext $(Cluster)_$(Proc) 
 #  arguments = --work_dir_ext $(Cluster)_$(Process) 
 endif
