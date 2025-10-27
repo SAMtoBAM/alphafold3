@@ -35,11 +35,16 @@ if defined USE_SMALL_DB
 else
   # full requirements
   request_memory = 16GB
-  request_disk = 700GB
+  request_disk = 800GB
   request_cpus = 8
   arguments = --work_dir_ext $(Cluster)_$(Proc) 
 #  arguments = --work_dir_ext $(Cluster)_$(Process) 
 endif
+
+##provide higher memory when retrying after going over requested memory limit (doubling each time until 128GB)
+retry_request_memory_increase = RequestMemory * 2
+retry_request_memory_max = 128GB
+
 
 queue directory matching job*
 
