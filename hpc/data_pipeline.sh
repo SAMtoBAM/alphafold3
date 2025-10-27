@@ -118,6 +118,9 @@ readonly STAGING_DB_DIR="${STAGING_DIR}/${DB_DIR_STUB}"
 
 readonly WORK_DIR="work.${WORK_DIR_EXT}"
 
+#echo "Cleaning up old files if exists"
+#rm -rf "$WORK_DIR"/*
+
 printinfo "WORK_DIR       : `realpath $WORK_DIR`"
 if [[ -n "${WORK_TMP_DIR}" ]] ; then
   printinfo "WORK_TMP_DIR   : `realpath $WORK_TMP_DIR`"
@@ -182,37 +185,49 @@ printinfo "SINGIMG_PATH   : $SINGIMG_PATH"
 printinfo "IMG_EXE_CMD    : $IMG_EXE_CMD"
 
 
+# --- DATABASE EXTRACTION SECTION ---
 if [ -z "$EXTRACTED_DATABASE_PATH" ] ; then
-  printverbose "Preparing to extract the databases"
-
   EXTRACTED_DATABASE_PATH="${WORK_DIR}/public_databases"
-  printinfo "EXTRACTED_DATABASE_PATH  : ${EXTRACTED_DATABASE_PATH}"
+fi
 
-  ## prepare public_databases directory
-  ## Will do 8 file copy/uncompress in parallel so we request 8 cpus
+printinfo "Checking database at: ${EXTRACTED_DATABASE_PATH}"
+
+# If database directory exists and has at least one expected file, skip decompression
+if [ -d "${EXTRACTED_DATABASE_PATH}" ] && ls "${EXTRACTED_DATABASE_PATH}"/*.fa >/dev/null 2>&1; then
+  printinfo "Database already extracted. Skipping decompression."
+else
+  printinfo "Database not found or incomplete. Extracting now..."
+
+  mkdir -p "${EXTRACTED_DATABASE_PATH}"
+  printinfo "STAGING_DB_DIR : ${STAGING_DB_DIR}"
+
+  # Decompress the PDB files
   printverbose "Start decompressing : pdb_2022_09_28_mmcif_files"
-  printinfo "STAGING_DB_DIR : $STAGING_DB_DIR"
-  cat "${STAGING_DB_DIR}"/pdb_2022_09_28_mmcif_files.tar.zst | \
-          ${IMGEXEC} tar --no-same-owner --no-same-permissions \
-          --use-compress-program=zstd -xf - \
-          --directory="${EXTRACTED_DATABASE_PATH}/" &
-  
+  cat "${STAGING_DB_DIR}/pdb_2022_09_28_mmcif_files.tar.zst" | \
+    ${IMGEXEC} tar --no-same-owner --no-same-permissions \
+    --use-compress-program=zstd -xf - \
+    --directory="${EXTRACTED_DATABASE_PATH}/" &
+
+  # Decompress the FASTA databases
   for NAME in mgy_clusters_2022_05.fa \
               bfd-first_non_consensus_sequences.fasta \
               uniref90_2022_05.fa uniprot_all_2021_04.fa \
               pdb_seqres_2022_09_28.fasta \
               rnacentral_active_seq_id_90_cov_80_linclust.fasta \
               nt_rna_2023_02_23_clust_seq_id_90_cov_80_rep_seq.fasta \
-              rfam_14_9_clust_seq_id_90_cov_80_rep_seq.fasta ; do
-    printinfo "Start decompressing: '${NAME}'"
-    cat "${STAGING_DB_DIR}/${NAME}.zst" | \
-        ${IMGEXEC} zstd --decompress > "${EXTRACTED_DATABASE_PATH}/${NAME}" &
+              rfam_14_9_clust_seq_id_90_cov_80_rep_seq.fasta; do
+    if [ -f "${EXTRACTED_DATABASE_PATH}/${NAME}" ]; then
+      printinfo "Skipping existing database file: ${NAME}"
+    else
+      printinfo "Extracting: ${NAME}"
+      cat "${STAGING_DB_DIR}/${NAME}.zst" | \
+          ${IMGEXEC} zstd --decompress > "${EXTRACTED_DATABASE_PATH}/${NAME}" &
+    fi
   done
-  
-  wait # for all decompression to finish
-  printverbose "Completed database installation"
-fi
 
+  wait # Wait for all decompressions to finish
+  printverbose "Completed database installation."
+fi
 
 
 if [[ -n "$SINGIMG" ]] ; then
