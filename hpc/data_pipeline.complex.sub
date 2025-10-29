@@ -3,7 +3,7 @@
 #universe = vanilla
 # comment out the line above and uncomment the line below to run the scripts
 # inside the container. Remove the --container argument from arguments
-container_image = file:///staging/saodonnell/af3complex.sif
+container_image = file:///staging/USERNAME/af3complex.sif
 
 executable = data_pipeline.complex.sh
 
