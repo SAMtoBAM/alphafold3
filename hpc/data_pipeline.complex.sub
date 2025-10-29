@@ -1,0 +1,50 @@
+
+# setting the universe to vanilla will require --container argument
+#universe = vanilla
+# comment out the line above and uncomment the line below to run the scripts
+# inside the container. Remove the --container argument from arguments
+container_image = file:///staging/saodonnell/af3complex.sif
+
+executable = data_pipeline.complex.sh
+
+log = ../logs/data_pipeline.complex.log
+output = ../logs/data_pipeline_$(Cluster)_$(Process).out
+error  = ../logs/data_pipeline_$(Cluster)_$(Process).err
+
+initialdir = $(directory)
+# transfer all files in the data_inputs directory
+transfer_input_files = data_inputs/
+
+should_transfer_files = YES
+when_to_transfer_output = ON_EXIT
+
+# We need this to transfer the databases to the execute node
+Requirements = (Target.HasCHTCStaging == true) && (has_avx == true)
+
+if defined FLOCK
++WantFlocking = True
+endif
+
+if defined USE_SMALL_DB
+  # testing requirements
+  request_memory = 8GB
+  request_disk = 16GB
+  request_cpus = 4
+  arguments = --smalldb --work_dir_ext $(Cluster)_$(Process) --verbose
+#  arguments = --smalldb --work_dir_ext $(Cluster)_$(Process)
+else
+  # full requirements
+  request_memory = 32GB
+  request_disk = 800GB
+  request_cpus = 8
+  arguments = --work_dir_ext $(Cluster)_$(Proc) 
+#  arguments = --work_dir_ext $(Cluster)_$(Process) 
+endif
+
+##provide higher memory when retrying after going over requested memory limit (doubling each time until 128GB)
+retry_request_memory_increase = RequestMemory * 2
+retry_request_memory_max = 128GB
+
+
+queue directory matching job*
+
