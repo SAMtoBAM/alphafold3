@@ -196,27 +196,6 @@ fi
 printinfo "EXTRA_RUN_ALPHAFOLD_FLAGS: $EXTRA_RUN_ALPHAFOLD_FLAGS"
 printinfo "EXTRA_APPTAINER_ENV      : $EXTRA_APPTAINER_ENV"
 
-printinfo "===== Preflight directory diagnostics ====="
-
-printinfo "[1] WORK_DIR: $(realpath ${WORK_DIR})"
-ls -lh "${WORK_DIR}"
-
-printinfo "[2] WORK_INPUT_DIR (af_input):"
-ls -lh "${WORK_DIR}/af_input" || printerr "af_input missing!"
-
-printinfo "[3] MODEL_PARAM_DIR (models):"
-ls -lh "${MODEL_PARAM_DIR}" || printerr "models missing!"
-
-printinfo "[4] DATABASES (public_databases):"
-ls -lh "${WORK_DIR}/public_databases" || printerr "public_databases missing!"
-
-printinfo "[5] Check input feature tar expansions:"
-ls -lh "${WORK_DIR}/af_input" || printerr "public_databases missing!"
-
-printinfo "==========================================="
-
-
-
 if [[ -n "$SINGIMG" ]] ; then # use apptainer to run the container
   apptainer exec \
      --bind "${WORK_DIR}/af_input":/root/af_input \
