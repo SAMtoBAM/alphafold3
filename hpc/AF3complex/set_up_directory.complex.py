@@ -1,40 +1,15 @@
-# Given a multifasta, this script will create a folder named job1...jobN with subfolders named data_inputs and inference_inputs.
-# This script will create a custom json file for each fasta sequence, and place them in batches of batch size (e.g. 10) under each job1 to jobN folders
-# the batch size can be provided by the user through a command line argument.
-# usage: set_up_folders.py [-h] fasta_file batch_size
+#!/usr/bin/env python3
+"""
+Given a probe FASTA and a proteome FASTA, this script will create job folders (job1, job2, …)
+each containing AlphaFold Server JSON files (AF3Complex-compatible) describing complexes of:
+    probe + each protein in the proteome
 
-# for example, let test.fasta look like this, and batch_size = 5:
-# >sequence1
-# ABCDEFG
-# >sequence2
-# HIJKLMNOP
-# >sequence3
-# QRSTUV
-# >sequence4
-# ABCDEFG
-# >sequence5
-# HIJKLMNOP
-# >sequence6
-# QRSTUV
-# This script will create these 2 job folders, with 5 json files in each.
-# job1
-# ├── data_inputs
-# │   └── fold_input_1.json
-# │   └── fold_input_2.json
-# │   └── fold_input_3.json
-# │   └── fold_input_4.json
-# │   └── fold_input_5.json
-# └── inference_inputs
-# job2
-# ├── data_inputs
-# │   └── fold_input_6.json
-# └── inference_inputs
+Usage:
+    python set_up_directory_complex.py probe.fasta proteome.fasta batch_size
 
-## USAGE ##
-# chmod +x set_up_directory.py
-# python set_up_directory test.fasta batch_size
-
-# Import libraries
+Example:
+    python set_up_directory_complex.py probe.fasta proteome.fasta 10
+"""
 
 import json
 from Bio import SeqIO
@@ -43,74 +18,67 @@ import argparse
 import math
 
 
-def fasta_to_server_json(fasta_file, batch_size):
-    sequences = list(SeqIO.parse(fasta_file, "fasta"))
-    count = len(sequences)
-    num_batches = math.ceil(count / batch_size)
+def combine_probe_and_proteome(probe_fasta, proteome_fasta, batch_size):
+    # Read probe (expecting 1 sequence)
+    probe_records = list(SeqIO.parse(probe_fasta, "fasta"))
+    if len(probe_records) != 1:
+        raise ValueError("Probe FASTA must contain exactly one sequence.")
+    probe_record = probe_records[0]
+    probe_seq = str(probe_record.seq).strip()
 
-    def build_entry(record):
-        """Build one entry for AlphaFold Server format (compatible with AF3Complex)."""
-        seq_str = str(record.seq).strip()
+    # Read proteome sequences
+    proteome_records = list(SeqIO.parse(proteome_fasta, "fasta"))
+    total = len(proteome_records)
+    num_batches = math.ceil(total / batch_size)
 
-        # Detect complex by ':' separator in sequence
-        if ':' in seq_str:
-            sub_sequences = seq_str.split(':')
-            seq_list = [
-                {
-                    "proteinChain": {
-                        "sequence": subseq,
-                        "count": 1
-                    }
-                }
-                for subseq in sub_sequences
-            ]
-            print(f"[Complex] {record.id} → {len(sub_sequences)} chains")
-        else:
-            seq_list = [
-                {
-                    "proteinChain": {
-                        "sequence": seq_str,
-                        "count": 1
-                    }
-                }
-            ]
-            print(f"[Single]  {record.id}")
+    print(f"Loaded 1 probe ({probe_record.id}) and {total} proteome sequences.")
+    print(f"→ Creating {num_batches} job folders with up to {batch_size} complexes each.")
 
-        # Build entry following AlphaFold Server JSON dialect
+    def build_complex_entry(proteome_record):
+        """Build one AlphaFold3 complex entry (probe + proteome sequence)."""
+        prot_seq = str(proteome_record.seq).strip()
+
+        seq_list = [
+            {"proteinChain": {"sequence": probe_seq, "count": 1}},     # probe
+            {"proteinChain": {"sequence": prot_seq, "count": 1}}       # target protein
+        ]
+
         entry = {
-            "name": record.id,
-            "modelSeeds": [1, 11, 111, 1111, 11111, 2, 22, 222, 2222, 22222, 3, 33, 333, 3333, 33333, 9, 99, 999, 9999, 99999],
+            "name": f"{probe_record.id}_{proteome_record.id}",
+            "modelSeeds": [1, 11, 111, 1111, 11111, 3, 33, 333, 3333, 33333, 6, 66, 666, 6666, 66666, 9, 99, 999, 9999, 99999],
             "sequences": seq_list,
             "dialect": "alphafoldserver",
             "version": 1
         }
         return entry
 
-    # Create job folders
-    for batch_index in range(num_batches):
-        job_dir = f"job{batch_index + 1}"
+    # Create job folders and write JSONs
+    for batch_idx in range(num_batches):
+        job_dir = f"job{batch_idx + 1}"
         data_inputs_dir = os.path.join(job_dir, "data_inputs")
         inference_inputs_dir = os.path.join(job_dir, "inference_inputs")
         os.makedirs(data_inputs_dir, exist_ok=True)
         os.makedirs(inference_inputs_dir, exist_ok=True)
 
-        # Records for this job
-        batch_records = sequences[batch_index * batch_size:(batch_index + 1) * batch_size]
-        batch_json_list = [build_entry(r) for r in batch_records]
+        # Select batch
+        batch_records = proteome_records[batch_idx * batch_size:(batch_idx + 1) * batch_size]
+        batch_entries = [build_complex_entry(r) for r in batch_records]
 
-        # Write one JSON file per batch (AlphaFold Server format → list at top level)
-        json_filename = os.path.join(data_inputs_dir, "fold_input_server.json")
-        with open(json_filename, "w") as json_file:
-            json.dump(batch_json_list, json_file, indent=2)
+        # Write combined JSON
+        json_path = os.path.join(data_inputs_dir, "fold_input_server.json")
+        with open(json_path, "w") as f:
+            json.dump(batch_entries, f, indent=2)
 
-        print(f"✔ Wrote {len(batch_records)} entries → {json_filename}")
+        print(f"✔ Wrote {len(batch_records)} complexes to {json_path}")
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Convert FASTA to per-job AlphaFold Server JSON format (AF3Complex compatible).")
-    parser.add_argument("fasta_file", type=str, help="Path to the input FASTA file")
-    parser.add_argument("batch_size", type=int, help="Number of sequences per job folder")
+    parser = argparse.ArgumentParser(
+        description="Combine a probe and proteome FASTA into batched AlphaFold Server JSONs for complex prediction."
+    )
+    parser.add_argument("probe_fasta", type=str, help="Path to probe FASTA (one sequence).")
+    parser.add_argument("proteome_fasta", type=str, help="Path to proteome FASTA (many sequences).")
+    parser.add_argument("batch_size", type=int, help="Number of complexes per job folder.")
 
     args = parser.parse_args()
-    fasta_to_server_json(args.fasta_file, args.batch_size)
-
+    combine_probe_and_proteome(args.probe_fasta, args.proteome_fasta, args.batch_size)
