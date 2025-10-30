@@ -8,8 +8,8 @@ container_image = file:///staging/USERNAME/af3complex.sif
 executable = data_pipeline.complex.sh
 
 log = ../logs/data_pipeline.complex.log
-output = ../logs/data_pipeline_$(Cluster)_$(Process).out
-error  = ../logs/data_pipeline_$(Cluster)_$(Process).err
+output = ../logs/data_pipeline.complex.$(Cluster)_$(Process).out
+error  = ../logs/data_pipeline.complex.$(Cluster)_$(Process).err
 
 initialdir = $(directory)
 # transfer all files in the data_inputs directory
