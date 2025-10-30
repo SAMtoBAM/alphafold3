@@ -79,7 +79,7 @@ def fasta_to_server_json(fasta_file, batch_size):
         # Build entry following AlphaFold Server JSON dialect
         entry = {
             "name": record.id,
-            "modelSeeds": [1],
+            "modelSeeds": [1, 11, 111, 1111, 11111, 2, 22, 222, 2222, 22222, 3, 33, 333, 3333, 33333, 9, 99, 999, 9999, 99999],
             "sequences": seq_list,
             "dialect": "alphafoldserver",
             "version": 1
