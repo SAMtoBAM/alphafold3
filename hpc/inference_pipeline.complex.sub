@@ -9,8 +9,8 @@ container_image = file:///staging/USERNAME/af3complex.sif
 executable = inference_pipeline.complex.sh
 
 log = ../logs/inference_pipeline.complex.log
-output = ../logs/inference_pipeline_$(Cluster)_$(Process).out
-error  = ../logs/inference_pipeline_$(Cluster)_$(Process).err
+output = ../logs/inference_pipeline.complex.$(Cluster)_$(Process).out
+error  = ../logs/inference_pipeline.complex.$(Cluster)_$(Process).err
 
 initialdir = $(directory)
 # transfer all files in the inference_inputs directory
