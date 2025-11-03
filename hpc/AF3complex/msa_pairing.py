@@ -76,7 +76,7 @@ def combine_probe_msas(msa_dir, probe_path, out_dir, batch_size):
                     "version": 1,
                     "name": f"{probe_name}_{target_name}",
                     "sequences": [],
-                    "modelSeeds": [1]  # <-- required for AlphaFold3
+                    "modelSeeds": [1, 11, 111, 1111, 11111, 3, 33, 333, 3333, 33333, 6, 66, 666, 6666, 66666, 9, 99, 999, 9999, 99999]  # <-- required for AlphaFold3
                 }
 
                 # Chain A → probe
