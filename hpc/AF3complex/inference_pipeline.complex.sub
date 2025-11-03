@@ -23,8 +23,8 @@ when_to_transfer_output = ON_EXIT
 Requirements = (Target.HasCHTCStaging == true) && (has_avx == true) && (CUDAGlobalMemoryMb > 16000)
 
 request_memory = 32GB
-# need space for the container (3GB) as well
-request_disk = 5GB
+# need space for all the inference protein datasets
+request_disk = 50GB
 request_cpus = 4
 request_gpus = 1
 
