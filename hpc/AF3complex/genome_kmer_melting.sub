@@ -1,0 +1,33 @@
+# Use the container
+container_image = file:///staging/saodonnell/paqman.sif
+# Note: Universe must be set to 'vanilla' when using container_image
+universe = vanilla
+
+# Executable script
+executable = genome_kmer_melting.sh
+
+# Logs
+log = logs/genome_kmer_melting.log
+output = logs/genome_kmer_melting.$(Cluster)_$(Process).out
+error  = logs/genome_kmer_melting.$(Cluster)_$(Process).err
+
+# Directory from which to run
+initialdir = $(directory)
+
+# Transfer inputs
+transfer_input_files = genome/
+should_transfer_files = YES
+when_to_transfer_output = ON_EXIT
+
+# Resource requirements
+Requirements = (Target.HasCHTCStaging == true) && (has_avx == true)
+request_memory = 16GB
+request_disk = 50GB
+request_cpus = 4
+
+# Retry logic for memory-hogging jobs
+retry_request_memory_increase = RequestMemory * 2
+retry_request_memory_max = 128GB
+
+# Queue one job per directory
+queue directory matching ./
