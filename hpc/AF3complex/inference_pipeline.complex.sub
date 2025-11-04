@@ -28,10 +28,8 @@ request_disk = 50GB
 request_cpus = 4
 request_gpus = 1
 
-# we should be able to run short jobs on CUDA_CAPABILITY=7.x but need
-# other environment variables and options to be set. This is done automatically
-# in inference_pipeline.complex.sh
-gpus_minimum_capability = 7.0
+# alphafold3 has known issues on CUDA_CAPABILITY=7.x so we are setting this minimum to avoid it, particularly with AF3Complex which doesn't allow extra input to avoid the issues
+gpus_minimum_capability = 8.0
 
 # need more GPU memory for larger jobs
 
