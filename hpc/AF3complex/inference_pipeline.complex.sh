@@ -188,7 +188,7 @@ EXTRA_RUN_ALPHAFOLD_FLAGS=""
 EXTRA_APPTAINER_ENV=" " # add a space here so it isn't an empty newline below
 if [  ${CUDA_CAPABILITY%.*} -eq 7 ] ; then
   printverbose "Setting extra flags for CUDA_CAPABILITY 7.x devices"
-  EXTRA_RUN_ALPHAFOLD_FLAGS="--flash_attention_implementation=xla"
+  #EXTRA_RUN_ALPHAFOLD_FLAGS="--flash_attention_implementation=xla"
   export XLA_FLAGS="--xla_disable_hlo_passes=custom-kernel-fusion-rewriter"
   EXTRA_APPTAINER_ENV="--env XLA_FLAGS=${XLA_FLAGS}"
 fi
