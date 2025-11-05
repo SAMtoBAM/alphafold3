@@ -15,7 +15,7 @@ do
     name=$(basename "$genome" | sed 's/\.[^.]*$//')
 
     meryl k=${kmersize} count ${genome} output ${name}_k8.meryl
-    meryl print ${name}_k8.meryl | grep -vE "(AAAA|CCCC|GGGG|TTTT|ATATAT|TATATA|GCGCGC|CGCGCG)" > ${name}_k8.and_count.txt
+    meryl print ${name}_k8.meryl > ${name}_k8.and_count.txt
     cat ${name}_k8.and_count.txt | shuf | cut -f1 | awk 'BEGIN{srand()} !/^$/ {if(rand() <= 0.5) print $0}' > ${name}_k8.random_half.txt 
     cat ${name}_k8.random_half.txt | awk '{print ">"$0"\n"$0}' > ${name}_k8.random_half.fa
 
