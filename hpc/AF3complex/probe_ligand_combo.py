@@ -90,7 +90,6 @@ def combine_probe_with_targets(probe_path, fasta_path, out_dir, batch_size, mode
                 combined["sequences"].append({
                     "ligand": {
                         "id": "B",
-                        "name": target_name,
                         "smiles": target_seq
                     }
                 })
