@@ -41,9 +41,9 @@ else
 #  arguments = --work_dir_ext $(Cluster)_$(Process) 
 endif
 
-##provide higher memory when retrying after going over requested memory limit (doubling each time until 128GB)
+##provide higher memory when retrying after going over requested memory limit (doubling each time until 256GB)
 retry_request_memory_increase = RequestMemory * 2
-retry_request_memory_max = 128GB
+retry_request_memory_max = 256GB
 
 
 queue directory matching job*
