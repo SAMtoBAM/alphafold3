@@ -190,7 +190,7 @@ fi
 ##move all msas into a single folder and clean up jobs
 mkdir proteome_msa
 mv job*/*.data_pipeline.tar.gz proteome_msa/
-rm -r jobs/
+rm -r job/
 
 
 ########################################################
@@ -241,4 +241,84 @@ condor_submit inference_pipeline.complex.sub
 #############################################
 
 ##Assuming everything ran well we now want to evaluate the best model-sample combination per complex
+
+##this can handle if more seeds are provided/used for inference 
+##therefore extracting all the relevant scores (ptm, iptm, ranking score)
+##but first we need to pick, for each model, the best sample based on the ranking score and just keep all the stats for that one
+##and for the first summary output we can output all the stats per model
+echo "complex;seed;best_sample;fraction_disordered;has_clash;pLDDT;ptm;iptm;ranking_score" | tr ';' '\t' > confidence_summary.all_seeds.tsv
+ls job*/*.tar.gz | while read folder
+do
+##individually run through each seed and get the best results per sample (based on highest confidence score)
+tar -tf $folder | awk -F "_" '{print $1}' | sort -u | grep seed | awk -F "/" '{print $2}' | while read seed
+do
+tar -tf $folder | grep "${seed}_" | awk -F "_" '{print $2}' | awk -F "/" '{print $1}' | sort -u | while read sample
+do
+tar --wildcards  -axf $folder ./${seed}_${sample}/summary_confidences.json -O | sed 's|"||g' | awk -F ":" -v protein="$protein" -v seed="$seed" -v sample="$sample" '{if($1 == " ranking_score") {print seed"\t"sample"\t"$2}}' | sed 's/,//g'
+done | sort -k3n | tail -n1 | awk '{print $2}' | while read bestsample
+do
+##get name of protein used
+protein=$( echo $folder | awk -F "/" '{print $NF}' | awk -F "." '{print $1}' )
+##read the compressed output folder and extract the pLDDT scores from the *_model.cif file
+pLDDT=$( tar -axf $folder ./${seed}_${bestsample}/model.cif -O | grep _ma_qa_metric_global.metric_value | awk -F " " '{print $2}' )
+##read the compressed output folder and extract the iptm, ptm and ranking_scores from the confidence summary file
+##then print all the important stats for each protein/complex
+tar --wildcards  -axf $folder ./${seed}_${bestsample}/summary_confidences.json -O | sed 's|"||g' | awk -F ":" -v protein="$protein" -v pLDDT="$pLDDT" -v seed="$seed" -v bestsample="$bestsample" '{if($1 == " iptm") {iptm = $2} else if($1 == " ptm") {ptm = $2} else if($1 == " ranking_score") {RS = $2} else if($1 == " fraction_disordered") {FD = $2} else if($1 == " has_clash") {HC = $2}} END{print protein"\t"seed"\t"bestsample"\t"FD"\t"HC"\t"pLDDT"\t"ptm"\t"iptm"\t"RS}' | sed 's/,//g'
+done
+done 
+done >> confidence_summary.all_seeds.tsv
+
+##now get the best model per sample/protein-complex based on the summary_score again
+awk 'NR==1 {print; next} {
+  key=$1
+  val=$NF
+  if (val > max[key]) {
+    max[key]=val
+    line[key]=$0
+  }
+}
+END {
+  for (k in line) print line[k]
+}' confidence_summary.all_seeds.tsv > confidence_summary.best_seed.tsv
+
+
+##now we could just evaluate this manually, but what about if we have compared each probe against many example
+##perhaps we only care about the strong outliers?
+##to do this we can calculate emperical p-values and select everything over 0.001
+
+##use emperical p-values to find the candidates k-mers
+##Step 1: Count total number of scores
+total=$( tail -n+2 confidence_summary.best_seed.tsv | grep -v "true" | wc -l)
+##subtract 1 if there's a header
+total=$((total-1))
+
+##Step 2: Compute empirical p-values and label
+cat confidence_summary.best_seed.tsv | awk -F "\t" '{print $1"\t"$7}' | sort -k2,2n -t$'\t' | awk '
+NR==1 {print $0 "\tp_empirical\tcandidates"; next}
+{
+    scores[NR-1] = $2
+    lines[NR-1] = $0
+    n = NR-1
+}
+END {
+    for(i=1;i<=n;i++){
+        count=0
+        for(j=1;j<=n;j++){
+            if(scores[j] <= scores[i]) count++
+        }
+        p = 1 - (count/n)
+        label = (p < 0.001 ? "candidates" : "background")
+        print lines[i] "\t" p "\t" label
+    }
+}' | grep candidates | cut -f1 > confidence_summary.best_seed.candidates_list.txt
+##now label the original summary file
+awk 'NR==FNR {c[$1]=1; next} 
+NR==1 {print $0 "\tcandidate_status"; next} 
+{
+  label = ($1 in c ? "candidates" : "background")
+  print $0 "\t" label
+}' confidence_summary.best_seed.candidates_list.txt confidence_summary.best_seed.tsv > confidence_summary.best_seed.candidates.tsv
+
+
+
 
