@@ -225,7 +225,7 @@ probename=LaeA
 ##this will recreate the jobN folder and inference_input folder and placed the combo msa jsons there
 python msa_pairing.py \
   --msa_dir ./proteome_msa/ \
-  --probe ./proteome_msa/${probe}_data.json \
+  --probe ./proteome_msa/${probe}.data_pipeline.tar.gz \
   --out_dir ./ \
   --batch_size 100
 
