@@ -26,7 +26,7 @@ def load_probe(probe_path):
             return json.load(f)
 
 
-def combine_probe_msas(msa_dir, probe_path, out_dir, batch_size):
+def combine_probe_msas(msa_dir, probe_path, out_dir, batch_size, highaccuracy):
     os.makedirs(out_dir, exist_ok=True)
 
     # Load probe JSON once
@@ -42,6 +42,17 @@ def combine_probe_msas(msa_dir, probe_path, out_dir, batch_size):
     total = len(tarballs)
     num_batches = math.ceil(total / batch_size)
     print(f"Found {total} inputs → {num_batches} job folders (batch size = {batch_size})")
+
+    # Decide seeds based on mode
+    if highaccuracy:
+        seeds = [
+            1, 11, 111, 1111, 11111,
+            3, 33, 333, 3333, 33333,
+            6, 66, 666, 6666, 66666,
+            9, 99, 999, 9999, 99999
+        ]
+    else:
+        seeds = [1]
 
     # Process in batches
     for batch_idx in range(num_batches):
@@ -70,13 +81,13 @@ def combine_probe_msas(msa_dir, probe_path, out_dir, batch_size):
 
                 target_name = target_json["name"]
 
-                # Build combined JSON with modelSeeds = [1]
+                # Build combined JSON
                 combined = {
                     "dialect": "alphafold3",
                     "version": 1,
                     "name": f"{probe_name}_{target_name}",
                     "sequences": [],
-                    "modelSeeds": [1, 11, 111, 1111, 11111, 3, 33, 333, 3333, 33333, 6, 66, 666, 6666, 66666, 9, 99, 999, 9999, 99999]  # <-- required for AlphaFold3
+                    "modelSeeds": seeds
                 }
 
                 # Chain A → probe
@@ -116,7 +127,11 @@ if __name__ == "__main__":
     parser.add_argument("--probe", required=True, help="Path to probe JSON or .data_pipeline.tar.gz")
     parser.add_argument("--out_dir", required=True, help="Base output directory for job folders")
     parser.add_argument("--batch_size", type=int, default=10, help="Number of tarballs per job folder (default: 10)")
+    parser.add_argument(
+        "--highaccuracy",
+        action="store_true",
+        help="Use full AlphaFold3 multi-seed list instead of a single seed"
+    )
 
     args = parser.parse_args()
-    combine_probe_msas(args.msa_dir, args.probe, args.out_dir, args.batch_size)
-
+    combine_probe_msas(args.msa_dir, args.probe, args.out_dir, args.batch_size, args.highaccuracy)
