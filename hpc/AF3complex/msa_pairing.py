@@ -64,12 +64,38 @@ def combine_probe_msas(msa_dir, probe_path, out_dir, batch_size, highaccuracy):
         job_dir.mkdir(parents=True, exist_ok=True)
 
         for tar_path in batch_files:
+
+            # Determine expected output name BEFORE extraction
+            with tarfile.open(tar_path, "r:gz") as tar:
+                members = tar.getmembers()
+                json_member = next((m for m in members if m.name.endswith("_data.json")), None)
+
+            if not json_member:
+                print(f"[!] No *_data.json inside {tar_path}")
+                continue
+
+            # Load target name (without full extraction)
             with tempfile.TemporaryDirectory() as tmpdir:
-                # Extract input tarball
+                with tarfile.open(tar_path, "r:gz") as tar:
+                    tar.extract(json_member, tmpdir)
+                with open(Path(tmpdir) / json_member.name) as f:
+                    tmp_json = json.load(f)
+                    target_name = tmp_json["name"]
+
+            # Output tarball path
+            expected_tar = job_dir / f"{probe_name}_{target_name}.data_pipeline.tar.gz"
+
+            # Skip if already exists
+            if expected_tar.exists():
+                print(f"⏭ Skipping {expected_tar.name} (already exists)")
+                continue
+
+            # Otherwise proceed normally
+            with tempfile.TemporaryDirectory() as tmpdir:
+                # Extract full tar
                 with tarfile.open(tar_path, "r:gz") as tar:
                     tar.extractall(tmpdir)
 
-                # Find contained *_data.json
                 json_files = list(Path(tmpdir).glob("*_data.json"))
                 if not json_files:
                     print(f"[!] No *_data.json inside {tar_path}")
@@ -78,8 +104,6 @@ def combine_probe_msas(msa_dir, probe_path, out_dir, batch_size, highaccuracy):
                 target_json_path = json_files[0]
                 with open(target_json_path) as f:
                     target_json = json.load(f)
-
-                target_name = target_json["name"]
 
                 # Build combined JSON
                 combined = {
@@ -90,13 +114,13 @@ def combine_probe_msas(msa_dir, probe_path, out_dir, batch_size, highaccuracy):
                     "modelSeeds": seeds
                 }
 
-                # Chain A → probe
+                # Chain A = probe
                 probe_protein = probe_json["sequences"][0]["protein"].copy()
                 probe_protein["id"] = "A"
                 probe_protein["pairedMsa"] = ""
                 combined["sequences"].append({"protein": probe_protein})
 
-                # Chain B → target
+                # Chain B = target
                 target_protein = target_json["sequences"][0]["protein"].copy()
                 target_protein["id"] = "B"
                 target_protein["pairedMsa"] = ""
@@ -108,13 +132,12 @@ def combine_probe_msas(msa_dir, probe_path, out_dir, batch_size, highaccuracy):
                 with open(combined_json_path, "w") as f:
                     json.dump(combined, f, indent=2)
 
-                # Tarball it
-                tar_output = job_dir / f"{probe_name}_{target_name}.data_pipeline.tar.gz"
-                with tarfile.open(tar_output, "w:gz") as tar:
+                # Tarball output
+                with tarfile.open(expected_tar, "w:gz") as tar:
                     tar.add(combined_json_path, arcname=combined_json_name)
 
                 os.remove(combined_json_path)
-                print(f"✔ job{batch_idx + 1}: {tar_output.name}")
+                print(f"✔ job{batch_idx + 1}: {expected_tar.name}")
 
     print(f"Finished generating {total} paired MSAs across {num_batches} job folders.")
 
