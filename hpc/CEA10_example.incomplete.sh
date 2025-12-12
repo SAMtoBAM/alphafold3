@@ -190,7 +190,7 @@ fi
 ##move all msas into a single folder and clean up jobs
 mkdir proteome_msa
 mv job*/*.data_pipeline.tar.gz proteome_msa/
-rm -r job/
+rm -r job*/
 
 
 ########################################################
