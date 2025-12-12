@@ -223,6 +223,7 @@ probename=LaeA
 
 ##have new python script that should combine the probe with all partners in the combined proteom-msa folder
 ##this will recreate the jobN folder and inference_input folder and placed the combo msa jsons there
+##python script has option for running more than a single seed per complex, to increase that to 20 add the '--highaccuracy' option 
 python msa_pairing.py \
   --msa_dir ./proteome_msa/ \
   --probe ./proteome_msa/${probe}.data_pipeline.tar.gz \
