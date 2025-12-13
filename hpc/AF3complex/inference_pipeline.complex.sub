@@ -41,5 +41,9 @@ gpus_minimum_capability = 8.0
 #arguments = --container alphafold3.sif --model_param_file /staging/dcosta2/af3/weights/af3.bin --work_dir_ext $(Cluster)_$(Process)
 arguments = --model_param_file /staging/USERNAME/af3/weights/af3.bin.zst --work_dir_ext $(Cluster)_$(Process)
 
+##provide higher memory when retrying after going over requested memory limit (doubling each time until 128GB)
+retry_request_memory_increase = RequestMemory * 2
+retry_request_memory_max = 128GB
+
 queue directory matching job*
 
