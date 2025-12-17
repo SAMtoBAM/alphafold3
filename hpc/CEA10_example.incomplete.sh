@@ -228,7 +228,7 @@ python msa_pairing.py \
   --msa_dir ./proteome_msa/ \
   --probe ./proteome_msa/${probe}.data_pipeline.tar.gz \
   --out_dir ./ \
-  --batch_size 30
+  --batch_size 10
 
 
 ##and now we submit jobs for the inference step
