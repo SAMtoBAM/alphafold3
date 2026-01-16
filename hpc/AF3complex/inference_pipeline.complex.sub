@@ -20,7 +20,7 @@ should_transfer_files = YES
 when_to_transfer_output = ON_EXIT
 
 # We need this to transfer the model weights to the execute node
-Requirements = (Target.HasCHTCStaging == true) && (has_avx == true) && (CUDAGlobalMemoryMb > 16000)
+Requirements = (Target.HasCHTCStaging == true) && (has_avx == true) && (CUDAGlobalMemoryMb > 48000)
 
 request_memory = 32GB
 # need space for all the inference protein datasets
