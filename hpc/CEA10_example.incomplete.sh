@@ -19,6 +19,10 @@
 ##put your username here (will be used a few times in the set up scripts)
 user="saodonnell"
 
+##need to set this variable as the first letter of your user
+##this is now in the directory systme for users in staging (a subdirectory split by first letters in the user name)
+firstletter=$( echo ${user} | cut -c1-1 )
+
 #############################################
 ######### 1a. GET AF3 MODEL WEIGHTS #########
 #############################################
@@ -27,9 +31,9 @@ user="saodonnell"
 ##the weights for the alphafold3 model are not open source therefore:
 ##go to this website to ask for permission for the alphafold3 models https://github.com/SAMtoBAM/alphafold3/blob/hpc/README.md#obtaining-model-parameters
 
-## once you have a link to the file, download it, place it is your staging as so /staging/${user}/af3/weights/af3.bin.zst
+## once you have a link to the file, download it, place it is your staging as so /staging/${firstletter}/${user}/af3/weights/af3.bin.zst
 ##then modify the file permissions
-chmod 600 /staging/${user}/af3/weights/af3.bin.zst
+chmod 600 /staging/${firstletter}/${user}/af3/weights/af3.bin.zst
 
 
 #############################################
@@ -63,7 +67,7 @@ conda activate AF3
 ##using singularity/apptainer to avoid permission issues with docker
 singularity pull af3complex.sif docker://samtobam/af3complex:af3
 ##move this singularity image to staging (this is where we will expect the image to be during submissions)
-mv af3complex.sif /staging/${user}/af3complex.sif
+mv af3complex.sif /staging/${firstletter}/${user}/af3complex.sif
 
 
 #############################################
@@ -106,7 +110,7 @@ wget https://raw.githubusercontent.com/SAMtoBAM/alphafold3/hpc/hpc/AF3complex/in
 wget https://raw.githubusercontent.com/SAMtoBAM/alphafold3/hpc/hpc/AF3complex/data_pipeline.complex.sub
 wget https://raw.githubusercontent.com/SAMtoBAM/alphafold3/hpc/hpc/AF3complex/data_pipeline.complex.sh
 
-##modify the paths to your singularity image (still assuming it is here: '/staging/${user}/af3complex.sif')
+##modify the paths to your singularity image (still assuming it is here: '/staging/${firstletter}/${user}/af3complex.sif')
 sed -i "s/USERNAME/${user}/" *.complex.sub
 
 ##we also need a python script that will organise the input proteins
