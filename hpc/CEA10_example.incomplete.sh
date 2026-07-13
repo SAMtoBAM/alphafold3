@@ -112,6 +112,7 @@ wget https://raw.githubusercontent.com/SAMtoBAM/alphafold3/hpc/hpc/AF3complex/da
 
 ##modify the paths to your singularity image (still assuming it is here: '/staging/${firstletter}/${user}/af3complex.sif')
 sed -i "s/USERNAME/${user}/" *.complex.sub
+sed -i "s/FIRSTLETTER/${firstletter}/" *.complex.sub
 
 ##we also need a python script that will organise the input proteins
 wget https://raw.githubusercontent.com/SAMtoBAM/alphafold3/hpc/hpc/AF3complex/set_up_directory.py
