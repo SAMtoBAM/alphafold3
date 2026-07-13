@@ -143,6 +143,10 @@ chmod +x msa_pairing.py
 ##THIS DATASET CONTAIN SPLIT PROTEINS BASED ON PROTEIN DOMAINS DUE TO THEM BEING TOO LARGE FOR INFERENCE (see below)
 proteome="../proteins/SAMN28487501.proteins.t1.split.fa"
 
+##first get list of proteins from proteome file
+##will be used when generating the summary statistics file
+grep '>' "${proteome}" | sed 's/>//g' > full_protein_list.txt
+
 ##just need one more variable; the number of complexes to combine into single jobs that will be submitted
 ##for now 30 seems to work well (balancing the time taken by the first step to decompress the protein database and how many proteins will go over the initial memory request...its hard to compute)
 ##this will create a jobX with each job having subdirectories, one 'af_input' containing a json file with information for ${proteinsperjob} number of complexes
@@ -211,9 +215,9 @@ rm -r job*/
 ##just zip up the proteome_msa folder as it takes up a lot of space for the mean time
 ##sadly will have to unzip it each time wanting to run another probe (but that is quite fast to do)
 tar -czf proteome_msa.tar.gz proteome_msa/
-mkdir /staging/saodonnell/af3_proteomes/
-mkdir /staging/saodonnell/af3_proteomes/${dataset}
-mv proteome_msa.tar.gz /staging/saodonnell/af3_proteomes/${dataset}/
+mkdir /staging/${firstletter}/${user}/af3_proteomes/
+mkdir /staging/${firstletter}/${user}/af3_proteomes/${dataset}
+mv proteome_msa.tar.gz /staging/${firstletter}/${user}/af3_proteomes/${dataset}/
 rm -r proteome_msa/
 
 
@@ -244,7 +248,7 @@ rm -r proteome_msa/
 probe="g3045"
 
 ##if already compressed (just send the decompressed files to here)
-tar -xzf  /staging/saodonnell/af3_proteomes/${dataset}/proteome_msa.tar.gz -C ./
+tar -xzf  /staging/${firstletter}/${user}/af3_proteomes/${dataset}/proteome_msa.tar.gz -C ./
 
 ##have new python script that should combine the probe with all partners in the combined proteom-msa folder
 ##this will recreate the jobN folder and inference_input folder and placed the combo msa jsons there
@@ -381,9 +385,7 @@ mv proteome_inference_clean proteome_inference
 ##this handles getting confidence scores whether or not the file is completed and fills in NAs if nothing
 ##folder search also needs to allow for some letter being made lowercase by alphafold
 
-##first get list of proteins from proteome file
-grep '>' "${proteome}" | sed 's/>//g' > full_protein_list.txt
-
+##use list of proteins to analyse
 echo "protein1;protein2;fraction_disordered;has_clash;pLDDT;ptm;iptm;ranking_score" | tr ';' '\t' > confidence_summary.tsv
 cat full_protein_list.txt | while read -r pair
 do
@@ -593,7 +595,6 @@ done
 ##get rid of the rest and rename
 rm -r proteome_inference
 mv proteome_inference_candidates proteome_inference
-rm full_protein_list.txt
 
 ##reduce the file numbers for storage by zipping up all the already zipped results
 tar -czf proteome_inference.tar.gz proteome_inference
@@ -607,7 +608,7 @@ mv confidence_summary.tsv ${probe}_complexes
 mv candidate_list.txt ${probe}_complexes
 
 tar -czf ${probe}_complexes.tar.gz ${probe}_complexes
-mv ${probe}_complexes.tar.gz /staging/saodonnell/af3_proteomes/${dataset}
+mv ${probe}_complexes.tar.gz /staging/${firstletter}/${user}/af3_proteomes/${dataset}
 rm -r proteome_inference
 rm -r ${probe}_complexes
 
