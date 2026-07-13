@@ -4,7 +4,7 @@
 # comment out the line above and uncomment the line below to run the scripts
 # inside the container. Also, remove the --container argument
 # from arguments
-container_image = file:///staging/USERNAME/af3complex.sif
+container_image = file:///staging/FIRSTLETTER/USERNAME/af3complex.sif
 
 executable = inference_pipeline.complex.sh
 
@@ -39,7 +39,7 @@ gpus_minimum_capability = 8.0
 +is_resumable = true
 
 #arguments = --container alphafold3.sif --model_param_file /staging/dcosta2/af3/weights/af3.bin --work_dir_ext $(Cluster)_$(Process)
-arguments = --model_param_file /staging/USERNAME/af3/weights/af3.bin.zst --work_dir_ext $(Cluster)_$(Process)
+arguments = --model_param_file /staging/FIRSTLETTER/USERNAME/af3/weights/af3.bin.zst --work_dir_ext $(Cluster)_$(Process)
 
 ##provide higher memory when retrying after going over requested memory limit (doubling each time until 128GB)
 retry_request_memory_increase = RequestMemory * 2
