@@ -41,7 +41,7 @@ gpus_minimum_capability = 7.0
 +is_resumable = true
 
 #arguments = --container alphafold3.sif --model_param_file /staging/dcosta2/af3/weights/af3.bin --work_dir_ext $(Cluster)_$(Process)
-arguments = --model_param_file /staging/USERNAME/af3/weights/af3.bin.zst --work_dir_ext $(Cluster)_$(Process)
+arguments = --model_param_file /staging/FIRSTLETTER/USERNAME/af3/weights/af3.bin.zst --work_dir_ext $(Cluster)_$(Process)
 
 queue directory matching job*
 
