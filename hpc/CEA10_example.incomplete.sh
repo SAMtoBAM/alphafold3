@@ -55,6 +55,8 @@ chmod 600 /staging/${firstletter}/${user}/af3/weights/af3.bin.zst
 
 ##now create actual environment
 #conda create -n AF3 conda-forge::biopython
+##add some alphafold3 tools for analysis the inference output
+#python3 -m pip install alphafold3-tools
 
 conda activate AF3
 
