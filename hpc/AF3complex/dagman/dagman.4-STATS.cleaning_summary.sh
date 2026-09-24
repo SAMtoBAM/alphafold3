@@ -503,7 +503,7 @@ cp ${probe}.combined_plddt.tsv ${probe}_complexes/${probe}.combined_plddt.tsv
 tar -czf ${probe}_complexes.tar.gz ${probe}_complexes
 
 ##do after moving back to cluster
-#mv ${probe}_complexes.tar.gz /staging/s/saodonnell/af3_proteomes/${dataset}
+#mv ${probe}_complexes.tar.gz /staging/FIRSTLETTER/USERNAME/af3_proteomes/${dataset}
 #rm -r ${probe}_complexes
 
 

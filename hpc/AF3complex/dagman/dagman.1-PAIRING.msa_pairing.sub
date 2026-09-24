@@ -1,4 +1,4 @@
-container_image = file:///staging/s/saodonnell/af3complex.sif
+container_image = file:///staging/FIRSTLETTER/USERNAME/af3complex.sif
 
 executable = dagman.1-PAIRING.msa_pairing.sh
 
@@ -11,7 +11,7 @@ error = logs/dagman.1-PAIRING.msa_pairing.$(Cluster)_$(Process).err
 initialdir = $(directory)
 
 # transfer what the job needs
-transfer_input_files = dagman.1-PAIRING.msa_pairing.py,file:///staging/s/saodonnell/af3_proteomes/$(dataset)/proteome_msa.tar.gz
+transfer_input_files = dagman.1-PAIRING.msa_pairing.py,file:///staging/FIRSTLETTER/USERNAME/af3_proteomes/$(dataset)/proteome_msa.tar.gz
 
 should_transfer_files = YES
 when_to_transfer_output = ON_EXIT

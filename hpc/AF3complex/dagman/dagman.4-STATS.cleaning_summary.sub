@@ -1,4 +1,4 @@
-#container_image = file:///staging/s/saodonnell/af3complex.sif
+#container_image = file:///staging/FIRSTLETTER/USERNAME/af3complex.sif
 
 executable = dagman.4-STATS.cleaning_summary.sh
 
@@ -12,7 +12,7 @@ initialdir = $(directory)
 
 # transfer what the job needs
 #transfer_input_files = proteome_inference.tar.gz,full_protein_list.txt
-transfer_input_files = proteome_inference.tar.gz,full_protein_list.txt,file:///staging/s/saodonnell/AF3.conda.tar.gz,dagman.4-STATS.extract_probe_plddt.py
+transfer_input_files = proteome_inference.tar.gz,full_protein_list.txt,file:///staging/FIRSTLETTER/USERNAME/AF3.conda.tar.gz,dagman.4-STATS.extract_probe_plddt.py
 
 
 should_transfer_files = YES
