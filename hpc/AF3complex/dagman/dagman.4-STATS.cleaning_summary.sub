@@ -1,0 +1,32 @@
+#container_image = file:///staging/s/saodonnell/af3complex.sif
+
+executable = dagman.4-STATS.cleaning_summary.sh
+
+arguments = $(probe)
+
+log = logs/dagman.4-STATS.cleaning_summary.log
+output = logs/dagman.4-STATS.cleaning_summary.$(Cluster)_$(Process).out
+error = logs/dagman.4-STATS.cleaning_summary.$(Cluster)_$(Process).err
+
+initialdir = $(directory)
+
+# transfer what the job needs
+#transfer_input_files = proteome_inference.tar.gz,full_protein_list.txt
+transfer_input_files = proteome_inference.tar.gz,full_protein_list.txt,file:///staging/s/saodonnell/AF3.conda.tar.gz,dagman.4-STATS.extract_probe_plddt.py
+
+
+should_transfer_files = YES
+when_to_transfer_output = ON_EXIT
+
+# send generated folders back
+#transfer_output_files = $(probe)_complexes.tar.gz,$(probe).confidence_summary.tsv
+transfer_output_files = $(probe)_complexes.tar.gz,$(probe).confidence_summary.tsv,$(probe).combined_plddt.tsv
+
+
+Requirements = (Target.HasCHTCStaging == true) && (has_avx == true)
+
+request_memory = 32GB
+request_disk = 300GB
+request_cpus = 2
+
+queue

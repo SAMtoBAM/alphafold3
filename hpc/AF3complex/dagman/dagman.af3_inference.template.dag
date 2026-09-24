@@ -1,0 +1,15 @@
+JOB PAIRING dagman.1-PAIRING.msa_pairing.sub
+JOB INFER dagman.2-INFER.inference_pipeline.complex.sub
+JOB RERUN dagman.3-RERUN.inference_pipeline.complex.rerun.sub
+JOB STATS dagman.4-STATS.cleaning_summary.sub
+
+VARS PAIRING probe="__PROBE__" dataset="__DATASET__"
+VARS STATS probe="__PROBE__"
+
+SCRIPT POST PAIRING dagman.1-PAIRING.unpack_pairing.sh
+SCRIPT POST INFER dagman.2-INFER.inference_check.sh
+SCRIPT POST RERUN dagman.3-RERUN.collect_inference.sh
+
+PARENT PAIRING CHILD INFER
+PARENT INFER CHILD RERUN
+PARENT RERUN CHILD STATS
